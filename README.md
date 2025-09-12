@@ -4,23 +4,56 @@ An LLM Agent that can perform materials research and DFT calculations autonomous
 
 ## Dataset Location
 
-**Important for LLM agents**: All adsorption energy datasets are stored in `data/raw_data/` directory. The LLM should look for available datasets in this location when benchmarking our DFT calculations with the compiled datasets.
+**Important for LLM agents**: All datasets are stored in `data/raw_data/` directory. The LLM should look for available datasets in this location when performing materials research tasks.
 
 Available datasets include:
 - `data/raw_data/CPD_H/` - CPD dataset with H species
 - `data/raw_data/OC2020_H/` - OC2020 dataset with H species  
-- `data/raw_data/jp4c06194_SI/` - Supporting information dataset
+- `data/raw_data/jp4c06194_SI/` - jp4c06194 dataset with H species
 
-## Usage Example
+### Working with Adsorption Data
 
-For github issue 3:
+Use this tested code pattern to load and analyze adsorption data:
+
 ```python
-python -m backend.graph.qe_workflow \
- --structure_path data/slab.traj \
- --pseudo_dir ./pseudos/PBE \
- --workdir runs/pt111_co \
- --run_mode local \
- --thread_id pt111_co
-```
+import json
 
-## check read me to double check the schema, then write the code
+# Load adsorption data
+with open('data/raw_data/CPD_H/adsorption_data.json', 'r') as f:
+    data = json.load(f)
+
+# Extract all records (data structure: [{\"data\": [records...]}])
+all_records = []
+for entry in data:
+    if isinstance(entry, dict) and 'data' in entry:
+        all_records.extend(entry['data'])
+
+# Example: Find hydrogen-containing adsorbates
+hydrogen_records = []
+for record in all_records:
+    formula = record['adsorbate']['formula']
+    if 'H' in formula:
+        hydrogen_records.append({
+            'formula': formula,
+            'energy': record['adsorption_energy'],
+            'metal': record['adsorbent']['composition'],
+            'surface': record['adsorbent']['surface']
+        })
+
+print(f'Found {len(hydrogen_records)} hydrogen entries')
+```
+# Example: Find hydrogen-containing adsorbates
+hydrogen_records = []
+for record in all_records:
+    formula = record['adsorbate']['formula']
+    if 'H' in formula:
+        hydrogen_records.append({
+            'formula': formula,
+            'energy': record['adsorption_energy'],
+            'metal': record['adsorbent']['composition'],
+            'surface': record['adsorbent']['surface']
+        })
+
+print(f'Found {len(hydrogen_records)} hydrogen entries')
+```
+>>>>>>> feature/add-dataset-docs
